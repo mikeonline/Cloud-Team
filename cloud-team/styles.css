@@ -1,0 +1,16 @@
+/* Additional styles for Cloud Team game */
+
+body {
+    font-family: 'Roboto Mono', monospace;
+}
+
+.toggle-checkbox:checked {
+    right: 0;
+    border-color: #68D391;
+}
+
+.toggle-checkbox:checked + .toggle-label {
+    background-color: #68D391;
+}
+
+/* Add any additional custom styles here */

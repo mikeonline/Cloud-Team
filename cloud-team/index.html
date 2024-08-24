@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Team - Welcome</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-900 text-green-400 min-h-screen flex items-center justify-center">
+    <div id="landing-container" class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-4xl w-full">
+        <h1 class="text-4xl font-bold text-center mb-6 text-blue-400">Welcome to Cloud Team</h1>
+        <p class="text-center mb-6">Manage your virtual cloud infrastructure and compete for the highest score!</p>
+        <button id="start-game" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded mb-8">Start Game</button>
+        <div id="high-scores" class="bg-gray-700 p-4 rounded">
+            <h2 class="text-2xl font-bold mb-4 text-center">Top Scores</h2>
+            <ol id="top-scores" class="list-decimal list-inside"></ol>
+        </div>
+    </div>
+    <script src="landing.js"></script>
+</body>
+</html>
