@@ -7,6 +7,7 @@ const timerElement = document.getElementById('timer');
 const topScoresElement = document.getElementById('top-scores');
 const livesElement = document.getElementById('lives');
 const gameContainer = document.getElementById('game-container');
+const countdownProgressElement = document.getElementById('countdown-progress');
 
 // Non-player editable setting for the number of lives
 const MAX_LIVES = 3;
@@ -235,6 +236,7 @@ function setNewTask() {
         instructionElement.textContent = currentTask.instruction;
         taskStartTime = Date.now();
         taskTimer = 10; // Reset task timer to 10 seconds
+        updateCountdownTimer();
     } else {
         instructionElement.textContent = "Great job! Waiting for new tasks...";
         setTimeout(setNewTask, 2000); // Try again in 2 seconds
@@ -272,10 +274,17 @@ function updateTimer() {
 
 function updateTaskTimer() {
     taskTimer--;
+    updateCountdownTimer();
     if (taskTimer < 0) {
         loseLife();
         setNewTask();
     }
+}
+
+function updateCountdownTimer() {
+    const progress = (taskTimer / 10) * 100;
+    countdownProgressElement.style.width = `${progress}%`;
+    countdownProgressElement.style.backgroundColor = progress <= 30 ? '#ef4444' : '#48bb78';
 }
 
 function loseLife() {
