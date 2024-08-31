@@ -1,7 +1,16 @@
 /* Additional styles for Cloud Team game */
 
+@font-face {
+    font-family: 'Rastamano';
+    src: url('Rastamanoblique-xner.ttf') format('truetype');
+}
+
 body {
     font-family: 'JetBrains Mono', monospace;
+}
+
+h1, h2, h3, h4, h5, h6, #top-scores {
+    font-family: 'Rastamano', cursive;
 }
 
 .toggle-checkbox:checked {
