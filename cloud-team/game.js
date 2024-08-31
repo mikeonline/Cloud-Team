@@ -486,7 +486,7 @@ function createMatrixBackground() {
     canvas.height = window.innerHeight;
 
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*()_+-=[]{}|;:,.<>?';
-    const columns = canvas.width / 20;
+    const columns = canvas.width / 15; // Reduced spacing between columns
     const drops = [];
 
     for (let i = 0; i < columns; i++) {
@@ -498,13 +498,13 @@ function createMatrixBackground() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         ctx.fillStyle = '#0F0';
-        ctx.font = '15px monospace';
+        ctx.font = '12px EpsonMxSeries, monospace'; // Reduced font size
 
         for (let i = 0; i < drops.length; i++) {
             const text = characters[Math.floor(Math.random() * characters.length)];
-            ctx.fillText(text, i * 20, drops[i] * 20);
+            ctx.fillText(text, i * 15, drops[i] * 15); // Adjusted spacing
 
-            if (drops[i] * 20 > canvas.height && Math.random() > 0.975) {
+            if (drops[i] * 15 > canvas.height && Math.random() > 0.975) {
                 drops[i] = 0;
             }
 
@@ -520,8 +520,8 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         loadTopScores();
         startRound();
-        createMatrixBackground();
-
+        createMatrixBackground(); // Add this line to call createMatrixBackground
+        
         // Add CSS for red pulse animation
         const style = document.createElement('style');
         style.textContent = `
