@@ -282,6 +282,8 @@ function loseLife() {
     lives--;
     updateLivesDisplay();
     shakeScreen();
+    scrambleMatrixText();
+    pulseRed();
     if (lives <= 0) {
         endRound();
     }
@@ -295,6 +297,53 @@ function shakeScreen() {
     gameContainer.classList.add('shake');
     setTimeout(() => {
         gameContainer.classList.remove('shake');
+    }, 500);
+}
+
+function scrambleMatrixText() {
+    const canvas = document.getElementById('matrix-bg');
+    const ctx = canvas.getContext('2d');
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*()_+-=[]{}|;:,.<>?';
+    
+    function scramble() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#0F0';
+        ctx.font = '15px monospace';
+
+        for (let i = 0; i < canvas.width; i += 20) {
+            for (let j = 0; j < canvas.height; j += 20) {
+                const char = characters[Math.floor(Math.random() * characters.length)];
+                ctx.fillText(char, i, j);
+            }
+        }
+    }
+
+    let scrambleCount = 0;
+    const scrambleInterval = setInterval(() => {
+        scramble();
+        scrambleCount++;
+        if (scrambleCount >= 10) {
+            clearInterval(scrambleInterval);
+        }
+    }, 50);
+}
+
+function pulseRed() {
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+    overlay.style.animation = 'pulse-red 0.5s ease-in-out';
+    overlay.style.pointerEvents = 'none';
+    document.body.appendChild(overlay);
+
+    setTimeout(() => {
+        document.body.removeChild(overlay);
     }, 500);
 }
 
@@ -421,6 +470,17 @@ document.addEventListener('DOMContentLoaded', () => {
         loadTopScores();
         startRound();
         createMatrixBackground();
+
+        // Add CSS for red pulse animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse-red {
+                0% { opacity: 0; }
+                50% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
     } catch (error) {
         console.error("Error initializing game:", error);
     }
