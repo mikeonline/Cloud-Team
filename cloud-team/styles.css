@@ -69,4 +69,24 @@ h1, h2, h3, h4, h5, h6, #top-scores {
     }
 }
 
+/* Point popup styles */
+.point-popup {
+    position: absolute;
+    font-family: 'JetBrains Mono Extra Bold', cursive;
+    font-size: 1.5rem;
+    color: #4CAF50;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease-out;
+}
+
+@keyframes float-up {
+    0% {
+        transform: translateY(0) rotate(0deg);
+    }
+    100% {
+        transform: translateY(-100px) rotate(var(--rotation));
+    }
+}
+
 /* Add any additional custom styles here */
