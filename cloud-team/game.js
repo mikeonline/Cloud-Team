@@ -398,12 +398,16 @@ function checkHighScore(score) {
 }
 
 function showGameOverScreen(playerPosition) {
+    const visibleScores = 7; // Number of scores to display
+    const startIndex = Math.max(0, Math.min(playerPosition - Math.ceil(visibleScores / 2), topScores.length - visibleScores));
+    const endIndex = Math.min(startIndex + visibleScores, topScores.length);
+
     gameContainer.innerHTML = `
         <div class="game-over-screen bg-gray-800 bg-opacity-90 p-8 rounded-lg shadow-lg max-w-4xl w-full relative z-10">
             <h1 class="text-4xl font-bold text-center mb-6 text-blue-400">Game Over</h1>
             <p class="text-2xl text-center mb-4">Your Score: ${score}</p>
             <p class="text-xl text-center mb-6">Your Position: ${playerPosition}</p>
-            <div class="leaderboard-container h-64 overflow-y-auto mb-6">
+            <div class="leaderboard-container mb-6">
                 <table class="w-full text-left">
                     <thead>
                         <tr>
@@ -420,24 +424,18 @@ function showGameOverScreen(playerPosition) {
     `;
 
     const leaderboardBody = document.getElementById('leaderboard-body');
-    topScores.forEach((score, index) => {
+    for (let i = startIndex; i < endIndex; i++) {
+        const score = topScores[i];
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td class="px-4 py-2">${index + 1}</td>
+            <td class="px-4 py-2">${i + 1}</td>
             <td class="px-4 py-2">${score.name}</td>
             <td class="px-4 py-2">${score.score}</td>
         `;
-        if (index + 1 === playerPosition) {
+        if (i + 1 === playerPosition) {
             row.classList.add('bg-yellow-500', 'text-black', 'font-bold');
         }
         leaderboardBody.appendChild(row);
-    });
-
-    // Scroll to player's position
-    const leaderboardContainer = document.querySelector('.leaderboard-container');
-    const playerRow = leaderboardBody.children[playerPosition - 1];
-    if (playerRow) {
-        leaderboardContainer.scrollTop = playerRow.offsetTop - leaderboardContainer.offsetHeight / 2;
     }
 
     document.getElementById('end-button').addEventListener('click', () => {
