@@ -37,4 +37,36 @@ h1, h2, h3, h4, h5, h6, #top-scores {
     background-color: #68D391;
 }
 
+/* Styles for High Score div */
+#landing-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+}
+
+#high-scores {
+    flex-grow: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+#top-scores {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    animation: scroll-scores 20s ease-in-out infinite alternate;
+}
+
+@keyframes scroll-scores {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(calc(-100% + 100vh));
+    }
+}
+
 /* Add any additional custom styles here */
