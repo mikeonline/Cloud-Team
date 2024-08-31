@@ -7,7 +7,8 @@ const timerElement = document.getElementById('timer');
 const topScoresElement = document.getElementById('top-scores');
 const livesElement = document.getElementById('lives');
 const gameContainer = document.getElementById('game-container');
-const countdownProgressElement = document.getElementById('countdown-progress');
+const countdownProgressLeftElement = document.getElementById('countdown-progress-left');
+const countdownProgressRightElement = document.getElementById('countdown-progress-right');
 
 // Non-player editable setting for the number of lives
 const MAX_LIVES = 3;
@@ -180,7 +181,7 @@ function setupControls() {
 }
 
 function generateTasks() {
-    return currentControls.flatMap(control => {
+return currentControls.flatMap(control => {
         switch (control.type) {
             case 'slider':
                 const randomValue = Math.floor(Math.random() * 21) * 5; // Generate random multiple of 5 between 0 and 100
@@ -283,8 +284,11 @@ function updateTaskTimer() {
 
 function updateCountdownTimer() {
     const progress = (taskTimer / 10) * 100;
-    countdownProgressElement.style.width = `${progress}%`;
-    countdownProgressElement.style.backgroundColor = progress <= 30 ? '#ef4444' : '#48bb78';
+    countdownProgressLeftElement.style.height = `${progress}%`;
+    countdownProgressRightElement.style.height = `${progress}%`;
+    const color = progress <= 30 ? '#ef4444' : '#48bb78';
+    countdownProgressLeftElement.style.backgroundColor = color;
+    countdownProgressRightElement.style.backgroundColor = color;
 }
 
 function loseLife() {
