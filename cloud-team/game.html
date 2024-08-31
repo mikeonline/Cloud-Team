@@ -10,16 +10,20 @@
     <style>
         .shake {
             animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-            transform: translate3d(0, 0, 0);
-            backface-visibility: hidden;
-            perspective: 1000px;
+            transform-origin: center center;
         }
 
         @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
+            0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+            10% { transform: translate3d(-5px, -5px, 0) rotate(-3deg) scale(0.98); }
+            20% { transform: translate3d(5px, 5px, 0) rotate(3deg) scale(1.02); }
+            30% { transform: translate3d(-7px, 3px, 0) rotate(-2deg) scale(0.97); }
+            40% { transform: translate3d(7px, -3px, 0) rotate(2deg) scale(1.03); }
+            50% { transform: translate3d(-5px, 5px, 0) rotate(-3deg) scale(0.99); }
+            60% { transform: translate3d(5px, -5px, 0) rotate(3deg) scale(1.01); }
+            70% { transform: translate3d(-3px, 3px, 0) rotate(-1deg) scale(0.98); }
+            80% { transform: translate3d(3px, -3px, 0) rotate(1deg) scale(1.02); }
+            90% { transform: translate3d(-2px, 2px, 0) rotate(-1deg) scale(0.99); }
         }
     </style>
 </head>
