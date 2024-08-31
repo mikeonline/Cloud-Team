@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
             position: fixed;
             font-family: 'JetBrains Mono Extra Bold', cursive;
             font-size: 1.5rem;
-            color: #7C5FDC;
+            color: #4CAF50;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.5s ease-out;
