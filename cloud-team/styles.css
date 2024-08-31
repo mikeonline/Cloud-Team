@@ -1,7 +1,7 @@
 /* Additional styles for Cloud Team game */
 
 body {
-    font-family: 'Roboto Mono', monospace;
+    font-family: 'JetBrains Mono', monospace;
 }
 
 .toggle-checkbox:checked {
