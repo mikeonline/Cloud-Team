@@ -379,30 +379,70 @@ function endRound() {
     console.log("Ending round...");
     clearInterval(roundInterval);
     clearInterval(taskInterval);
-    instructionElement.textContent = `Round Over! Final Score: ${score}`;
-    checkHighScore(score);
+    const playerPosition = checkHighScore(score);
+    showGameOverScreen(playerPosition);
 }
 
 function checkHighScore(score) {
-    const lowestTopScore = topScores.length < 5 ? 0 : topScores[topScores.length - 1].score;
+    const newScore = { name: "Player", score: score };
+    topScores.push(newScore);
+    topScores.sort((a, b) => b.score - a.score);
+    const playerPosition = topScores.findIndex(s => s === newScore) + 1;
     
-    if (score > lowestTopScore || topScores.length < 5) {
-        const playerName = prompt("You've made it to the top 5! Enter your name:");
-        const newScore = { name: playerName, score: score };
-        topScores.push(newScore);
-        topScores.sort((a, b) => b.score - a.score);
-        if (topScores.length > 5) {
-            topScores.pop();
-        }
-        updateScoreboard();
-        saveTopScores();
+    if (topScores.length > 100) {
+        topScores.pop();
     }
     
-    setTimeout(() => {
-        if (confirm('Play another round?')) {
-            startRound();
+    saveTopScores();
+    return playerPosition;
+}
+
+function showGameOverScreen(playerPosition) {
+    gameContainer.innerHTML = `
+        <div class="game-over-screen bg-gray-800 bg-opacity-90 p-8 rounded-lg shadow-lg max-w-4xl w-full relative z-10">
+            <h1 class="text-4xl font-bold text-center mb-6 text-blue-400">Game Over</h1>
+            <p class="text-2xl text-center mb-4">Your Score: ${score}</p>
+            <p class="text-xl text-center mb-6">Your Position: ${playerPosition}</p>
+            <div class="leaderboard-container h-64 overflow-y-auto mb-6">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-2">Rank</th>
+                            <th class="px-4 py-2">Name</th>
+                            <th class="px-4 py-2">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body"></tbody>
+                </table>
+            </div>
+            <button id="end-button" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">End</button>
+        </div>
+    `;
+
+    const leaderboardBody = document.getElementById('leaderboard-body');
+    topScores.forEach((score, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="px-4 py-2">${index + 1}</td>
+            <td class="px-4 py-2">${score.name}</td>
+            <td class="px-4 py-2">${score.score}</td>
+        `;
+        if (index + 1 === playerPosition) {
+            row.classList.add('bg-yellow-500', 'text-black', 'font-bold');
         }
-    }, 3000);
+        leaderboardBody.appendChild(row);
+    });
+
+    // Scroll to player's position
+    const leaderboardContainer = document.querySelector('.leaderboard-container');
+    const playerRow = leaderboardBody.children[playerPosition - 1];
+    if (playerRow) {
+        leaderboardContainer.scrollTop = playerRow.offsetTop - leaderboardContainer.offsetHeight / 2;
+    }
+
+    document.getElementById('end-button').addEventListener('click', () => {
+        window.location.href = 'index.html';
+    });
 }
 
 function updateScoreboard() {
@@ -411,7 +451,7 @@ function updateScoreboard() {
         return;
     }
     topScoresElement.innerHTML = '';
-    topScores.forEach((score, index) => {
+    topScores.slice(0, 5).forEach((score, index) => {
         const li = document.createElement('li');
         li.textContent = `${score.name}: ${score.score}`;
         li.className = 'mb-2';
