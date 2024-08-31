@@ -7,9 +7,25 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+            transform: translate3d(0, 0, 0);
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-green-400 min-h-screen flex items-center justify-center">
-    <div id="game-container" class="bg-gray-800 p-8 rounded-lg shadow-lg max-w-4xl w-full">
+<body class="bg-gray-900 text-green-400 min-h-screen flex items-center justify-center overflow-hidden">
+    <canvas id="matrix-bg" class="fixed top-0 left-0 w-full h-full z-0"></canvas>
+    <div id="game-container" class="bg-gray-800 bg-opacity-90 p-8 rounded-lg shadow-lg max-w-4xl w-full relative z-10">
         <h1 class="text-4xl font-bold text-center mb-6 text-blue-400">Cloud Team</h1>
         <div id="timer" class="text-2xl text-center mb-4"></div>
         <div id="control-panel" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">

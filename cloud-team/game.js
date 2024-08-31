@@ -6,6 +6,7 @@ const scoreElement = document.getElementById('score');
 const timerElement = document.getElementById('timer');
 const topScoresElement = document.getElementById('top-scores');
 const livesElement = document.getElementById('lives');
+const gameContainer = document.getElementById('game-container');
 
 // Non-player editable setting for the number of lives
 const MAX_LIVES = 3;
@@ -280,6 +281,7 @@ function updateTaskTimer() {
 function loseLife() {
     lives--;
     updateLivesDisplay();
+    shakeScreen();
     if (lives <= 0) {
         endRound();
     }
@@ -287,6 +289,13 @@ function loseLife() {
 
 function updateLivesDisplay() {
     livesElement.textContent = `Lives: ${lives}`;
+}
+
+function shakeScreen() {
+    gameContainer.classList.add('shake');
+    setTimeout(() => {
+        gameContainer.classList.remove('shake');
+    }, 500);
 }
 
 function startRound() {
@@ -369,11 +378,49 @@ function updateToggleStatus(toggle) {
     statusElement.textContent = toggle.checked ? 'On' : 'Off';
 }
 
+function createMatrixBackground() {
+    const canvas = document.getElementById('matrix-bg');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*()_+-=[]{}|;:,.<>?';
+    const columns = canvas.width / 20;
+    const drops = [];
+
+    for (let i = 0; i < columns; i++) {
+        drops[i] = 1;
+    }
+
+    function draw() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#0F0';
+        ctx.font = '15px monospace';
+
+        for (let i = 0; i < drops.length; i++) {
+            const text = characters[Math.floor(Math.random() * characters.length)];
+            ctx.fillText(text, i * 20, drops[i] * 20);
+
+            if (drops[i] * 20 > canvas.height && Math.random() > 0.975) {
+                drops[i] = 0;
+            }
+
+            drops[i]++;
+        }
+    }
+
+    setInterval(draw, 33);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM content loaded. Initializing game...");
     try {
         loadTopScores();
         startRound();
+        createMatrixBackground();
     } catch (error) {
         console.error("Error initializing game:", error);
     }
