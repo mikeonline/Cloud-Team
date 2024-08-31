@@ -323,7 +323,7 @@ function scrambleMatrixText() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         ctx.fillStyle = '#0F0';
-        ctx.font = '15px monospace';
+        ctx.font = '15px EpsonMxSeries';
 
         for (let i = 0; i < canvas.width; i += 20) {
             for (let j = 0; j < canvas.height; j += 20) {
