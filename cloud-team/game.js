@@ -5,11 +5,17 @@ const instructionElement = document.getElementById('instruction');
 const scoreElement = document.getElementById('score');
 const timerElement = document.getElementById('timer');
 const topScoresElement = document.getElementById('top-scores');
+const livesElement = document.getElementById('lives');
+
+// Non-player editable setting for the number of lives
+const MAX_LIVES = 3;
 
 let score = 0;
+let lives = MAX_LIVES;
 let currentTask = null;
 let roundTimer = 120; // 2 minutes in seconds
 let taskStartTime = 0;
+let taskTimer = 10; // 10 seconds per task
 let roundInterval;
 let taskInterval;
 let topScores = [];
@@ -227,6 +233,7 @@ function setNewTask() {
         currentTask = validTasks[Math.floor(Math.random() * validTasks.length)];
         instructionElement.textContent = currentTask.instruction;
         taskStartTime = Date.now();
+        taskTimer = 10; // Reset task timer to 10 seconds
     } else {
         instructionElement.textContent = "Great job! Waiting for new tasks...";
         setTimeout(setNewTask, 2000); // Try again in 2 seconds
@@ -262,19 +269,42 @@ function updateTimer() {
     }
 }
 
+function updateTaskTimer() {
+    taskTimer--;
+    if (taskTimer < 0) {
+        loseLife();
+        setNewTask();
+    }
+}
+
+function loseLife() {
+    lives--;
+    updateLivesDisplay();
+    if (lives <= 0) {
+        endRound();
+    }
+}
+
+function updateLivesDisplay() {
+    livesElement.textContent = `Lives: ${lives}`;
+}
+
 function startRound() {
     console.log("Starting new round...");
     setupControls();
     roundTimer = 120;
     score = 0;
+    lives = MAX_LIVES;
     scoreElement.textContent = '0';
+    updateLivesDisplay();
     setNewTask();
     roundInterval = setInterval(updateTimer, 1000);
     taskInterval = setInterval(() => {
+        updateTaskTimer();
         if (!currentTask || !currentTask.isValid()) {
             setNewTask();
         }
-    }, 5000);
+    }, 1000);
     console.log("Round started.");
 }
 
