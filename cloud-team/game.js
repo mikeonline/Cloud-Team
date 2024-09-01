@@ -9,7 +9,6 @@ const livesElement = document.getElementById('lives');
 const gameContainer = document.getElementById('game-container');
 const countdownProgressLeftElement = document.getElementById('countdown-progress-left');
 const countdownProgressRightElement = document.getElementById('countdown-progress-right');
-const gameTitleElement = document.getElementById('game-title');
 
 // Non-player editable setting for the number of lives
 const MAX_LIVES = 3;
@@ -269,17 +268,9 @@ function updateTimer() {
     const seconds = roundTimer % 60;
     timerElement.textContent = `Time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
     roundTimer--;
-    updateGlowIntensity();
     if (roundTimer < 0) {
         endRound();
     }
-}
-
-function updateGlowIntensity() {
-    const glowIntensity = Math.max(0, Math.min(1, roundTimer / 120)); // Normalize between 0 and 1
-    const shadowBlur = 10 + (1 - glowIntensity) * 20; // Increase blur as time decreases
-    const shadowOpacity = 0.5 + (1 - glowIntensity) * 0.5; // Increase opacity as time decreases
-    gameTitleElement.style.textShadow = `0 0 ${shadowBlur}px rgba(0, 115, 230, ${shadowOpacity})`;
 }
 
 function updateTaskTimer() {
@@ -385,7 +376,6 @@ function startRound() {
             setNewTask();
         }
     }, 1000);
-    updateGlowIntensity(); // Initialize glow effect
     console.log("Round started.");
 }
 
@@ -530,7 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         loadTopScores();
         startRound();
-        createMatrixBackground();
+        createMatrixBackground(); // Add this line to call createMatrixBackground
         
         // Add CSS for red pulse animation
         const style = document.createElement('style');
