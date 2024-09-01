@@ -2,22 +2,22 @@
 
 @font-face {
     font-family: 'EpsonMxSeries';
-    src: url('EpsonMxSeriesDmp-ZVRG8.ttf') format('truetype');
+    src: url('Assets/EpsonMxSeriesDmp-ZVRG8.ttf') format('truetype');
 }
 
 @font-face {
     font-family: 'Rastamano';
-    src: url('Rastamanoblique-xner.ttf') format('truetype');
+    src: url('Assets/Rastamanoblique-xner.ttf') format('truetype');
 }
 
 @font-face {
     font-family: 'JetBrains Mono Regular';
-    src: url('JetBrainsMonoNL-Regular.ttf') format('truetype');
+    src: url('Assets/JetBrainsMonoNL-Regular.ttf') format('truetype');
 }
 
 @font-face {
     font-family: 'JetBrains Mono Extra Bold';
-    src: url('JetBrainsMono-ExtraBold.ttf') format('truetype');
+    src: url('Assets/JetBrainsMono-ExtraBold.ttf') format('truetype');
 }
 
 body {
