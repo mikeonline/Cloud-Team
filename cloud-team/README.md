@@ -33,6 +33,10 @@ Cloud Team is a web-based game that simulates managing cloud infrastructure. Pla
 - Timed gameplay with visual countdown
 - Responsive design using Tailwind CSS
 
+## Future
+
+  I had multiplayer but have removed it for now - I will be adding it as a priority next up.
+
 ## How to Run
 
 1. Clone the repository to your local machine.
@@ -56,6 +60,3 @@ Cloud Team is a web-based game that simulates managing cloud infrastructure. Pla
 
 Contributions to Cloud Team are welcome! Please feel free to submit a Pull Request.
 
-## License
-
-This project is open source and available under the [MIT License](LICENSE).
