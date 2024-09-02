@@ -1,5 +1,7 @@
 console.log("Game.js is loading...");
 
+const socket = io();
+
 const controlPanel = document.getElementById('control-panel');
 const instructionElement = document.getElementById('instruction');
 const scoreElement = document.getElementById('score');
@@ -9,6 +11,7 @@ const livesElement = document.getElementById('lives');
 const gameContainer = document.getElementById('game-container');
 const countdownProgressLeftElement = document.getElementById('countdown-progress-left');
 const countdownProgressRightElement = document.getElementById('countdown-progress-right');
+const playersListElement = document.getElementById('players');
 
 // Non-player editable setting for the number of lives
 const MAX_LIVES = 3;
@@ -23,6 +26,8 @@ let roundInterval;
 let taskInterval;
 let topScores = [];
 let currentControls = [];
+let playerId;
+let players = [];
 
 const allControls = [
     {
@@ -226,6 +231,7 @@ return currentControls.flatMap(control => {
 function updateScore(points) {
     score += points;
     scoreElement.textContent = score;
+    socket.emit('update_score', { playerId, score });
 }
 
 function setNewTask() {
@@ -376,6 +382,7 @@ function startRound() {
             setNewTask();
         }
     }, 1000);
+    socket.emit('player_ready');
     console.log("Round started.");
 }
 
@@ -383,8 +390,7 @@ function endRound() {
     console.log("Ending round...");
     clearInterval(roundInterval);
     clearInterval(taskInterval);
-    const playerPosition = checkHighScore(score);
-    showGameOverScreen(playerPosition);
+    socket.emit('round_end', { playerId, score });
 }
 
 function checkHighScore(score) {
@@ -515,12 +521,23 @@ function createMatrixBackground() {
     setInterval(draw, 33);
 }
 
+function updatePlayersList() {
+    playersListElement.innerHTML = '';
+    players.forEach(player => {
+        const li = document.createElement('li');
+        li.textContent = `${player.id}: ${player.score}`;
+        if (player.id === playerId) {
+            li.classList.add('font-bold');
+        }
+        playersListElement.appendChild(li);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM content loaded. Initializing game...");
     try {
         loadTopScores();
-        startRound();
-        createMatrixBackground(); // Add this line to call createMatrixBackground
+        createMatrixBackground();
         
         // Add CSS for red pulse animation
         const style = document.createElement('style');
@@ -532,6 +549,42 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         `;
         document.head.appendChild(style);
+
+        // Socket.io event listeners
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+
+        socket.on('init', (data) => {
+            playerId = data.playerId;
+            players = data.players;
+            updatePlayersList();
+        });
+
+        socket.on('new_player', (player) => {
+            players.push(player);
+            updatePlayersList();
+        });
+
+        socket.on('player_disconnected', (id) => {
+            players = players.filter(player => player.id !== id);
+            updatePlayersList();
+        });
+
+        socket.on('update_scores', (updatedPlayers) => {
+            players = updatedPlayers;
+            updatePlayersList();
+        });
+
+        socket.on('start_round', () => {
+            startRound();
+        });
+
+        socket.on('end_round', (results) => {
+            endRound();
+            showGameOverScreen(results);
+        });
+
     } catch (error) {
         console.error("Error initializing game:", error);
     }
