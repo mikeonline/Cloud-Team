@@ -584,7 +584,7 @@ document.addEventListener('DOMContentLoaded', () => {
             endRound();
             showGameOverScreen(results);
         });
-
+        startRound();
     } catch (error) {
         console.error("Error initializing game:", error);
     }
