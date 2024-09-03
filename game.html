@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="styles.css">
     <script src="/socket.io/socket.io.js"></script>
     <style>
-
         .shake {
             animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
             transform-origin: center center;
@@ -52,10 +51,49 @@
             position: absolute;
             bottom: 0;
         }
+
+        #ticker-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(26, 32, 44, 0.9);
+            padding: 10px;
+            z-index: 100;
+            overflow: hidden;
+            height: 50px;
+        }
+
+        #instruction {
+            white-space: nowrap;
+            position: absolute;
+            left: 100%;
+            animation: scroll-left 15s linear infinite;
+        }
+
+        @keyframes scroll-left {
+            0% {
+                left: 100%;
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                left: -100%;
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-green-400 min-h-screen flex items-center justify-center overflow-hidden">
     <canvas id="matrix-bg" class="fixed top-0 left-0 w-full h-full z-0"></canvas>
+    <div id="ticker-panel">
+        <p id="instruction" class="text-lg">Welcome to Cloud Team Multiplayer! Follow the instructions to manage your cloud infrastructure.</p>
+    </div>
     <div id="game-container" class="bg-gray-800 bg-opacity-90 p-8 rounded-lg shadow-lg max-w-4xl w-full relative z-10">
         <div class="countdown-timer countdown-timer-left">
             <div id="countdown-progress-left" class="countdown-progress"></div>
@@ -67,9 +105,6 @@
         <div id="timer" class="text-2xl text-center mb-4"></div>
         <div id="control-panel" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <!-- Controls will be dynamically inserted here -->
-        </div>
-        <div id="message-panel" class="bg-gray-700 p-4 rounded mb-6">
-            <p id="instruction" class="text-lg">Welcome to Cloud Team Multiplayer! Follow the instructions to manage your cloud infrastructure.</p>
         </div>
         <div id="score-panel" class="text-2xl text-center mb-6 flex justify-center items-center space-x-6">
             <p>Score: <span id="score" class="font-bold">0</span></p>

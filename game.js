@@ -12,6 +12,7 @@ const gameContainer = document.getElementById('game-container');
 const countdownProgressLeftElement = document.getElementById('countdown-progress-left');
 const countdownProgressRightElement = document.getElementById('countdown-progress-right');
 const playersListElement = document.getElementById('players');
+const tickerPanel = document.getElementById('ticker-panel');
 
 // Non-player editable setting for the number of lives
 const MAX_LIVES = 3;
@@ -240,15 +241,22 @@ function setNewTask() {
     let validTasks = tasks.filter(task => task.isValid());
     if (validTasks.length > 0) {
         currentTask = validTasks[Math.floor(Math.random() * validTasks.length)];
-        instructionElement.textContent = currentTask.instruction;
+        updateInstruction(currentTask.instruction);
         taskStartTime = Date.now();
         taskTimer = 10; // Reset task timer to 10 seconds
         updateCountdownTimer();
     } else {
-        instructionElement.textContent = "Great job! Waiting for new tasks...";
+        updateInstruction("Great job! Waiting for new tasks...");
         setTimeout(setNewTask, 2000); // Try again in 2 seconds
     }
     console.log("New task set:", currentTask.instruction);
+}
+
+function updateInstruction(text) {
+    instructionElement.style.animation = 'none';
+    instructionElement.offsetHeight; // Trigger reflow
+    instructionElement.textContent = text;
+    instructionElement.style.animation = '';
 }
 
 function checkTask() {
