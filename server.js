@@ -21,8 +21,93 @@ const initialState = {
     taskTimer: 10,
     currentTask: null,
     MAX_PLAYERS: 4,
-    MAX_LIVES: 3
+    MAX_LIVES: 3,
+    currentControls: []
 };
+
+const allControls = [
+    {
+        id: 'database-slider',
+        type: 'slider',
+        label: 'Database Load',
+        min: 0,
+        max: 100,
+        value: 50
+    },
+    {
+        id: 'network-button',
+        type: 'button',
+        label: 'Optimize Network',
+        text: 'Optimize'
+    },
+    {
+        id: 'security-toggle',
+        type: 'toggle',
+        label: 'Security Firewall'
+    },
+    {
+        id: 'cache-slider',
+        type: 'slider',
+        label: 'Cache Level',
+        min: 0,
+        max: 100,
+        value: 50
+    },
+    {
+        id: 'api-dropdown',
+        type: 'dropdown',
+        label: 'API Version',
+        options: ['v1', 'v2', 'v3']
+    },
+    {
+        id: 'backup-button',
+        type: 'button',
+        label: 'Backup Data',
+        text: 'Backup'
+    },
+    {
+        id: 'scaling-toggle',
+        type: 'toggle',
+        label: 'Auto-scaling'
+    },
+    {
+        id: 'cpu-slider',
+        type: 'slider',
+        label: 'CPU Usage',
+        min: 0,
+        max: 100,
+        value: 50
+    },
+    {
+        id: 'memory-slider',
+        type: 'slider',
+        label: 'Memory Usage',
+        min: 0,
+        max: 100,
+        value: 50
+    },
+    {
+        id: 'firewall-dropdown',
+        type: 'dropdown',
+        label: 'Firewall Mode',
+        options: ['Permissive', 'Moderate', 'Strict']
+    },
+    {
+        id: 'encryption-toggle',
+        type: 'toggle',
+        label: 'Data Encryption'
+    },
+    {
+        id: 'load-balancer-toggle',
+        type: 'toggle',
+        label: 'Load Balancer'
+    }
+];
+
+function selectRandomControls(count) {
+    const shuffled = [...allControls].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+}
 
 function gameReducer(state = initialState, action) {
     switch (action.type) {
@@ -57,7 +142,8 @@ function gameReducer(state = initialState, action) {
                 ...state,
                 gameInProgress: true,
                 roundTimer: 120,
-                taskTimer: 10
+                taskTimer: 10,
+                currentControls: selectRandomControls(7)
             };
         case 'PLAYER_READY':
             return {
@@ -112,7 +198,8 @@ function gameReducer(state = initialState, action) {
                 gameInProgress: false,
                 players: Object.fromEntries(
                     Object.entries(state.players).map(([id, player]) => [id, { ...player, ready: false }])
-                )
+                ),
+                currentControls: []
             };
         default:
             return state;
@@ -165,7 +252,7 @@ io.on('connection', (socket) => {
         const state = store.getState();
         if (socket.id === state.hostId && Object.keys(state.players).length >= 1) {
             store.dispatch({ type: 'START_GAME' });
-            io.emit('game_starting');
+            io.emit('game_starting', state.currentControls);
             startGameLoop();
         }
     });
@@ -217,7 +304,8 @@ function startGameLoop() {
                 roundTimer: state.roundTimer,
                 taskTimer: state.taskTimer,
                 currentTask: state.currentTask,
-                players: state.players
+                players: state.players,
+                currentControls: state.currentControls
             });
         }
     }, 1000);
