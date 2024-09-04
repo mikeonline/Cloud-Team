@@ -15,6 +15,7 @@ app.use(express.static(path.join(__dirname, '.')));
 // Redux setup
 const initialState = {
     players: {},
+    playerControls: {},
     gameInProgress: false,
     hostId: null,
     roundTimer: 120,
@@ -22,7 +23,8 @@ const initialState = {
     currentTask: null,
     MAX_PLAYERS: 4,
     MAX_LIVES: 3,
-    currentControls: []
+    currentControls: [],
+    lastSelectedControl: null
 };
 
 const allControls = [
@@ -115,6 +117,7 @@ function gameReducer(state = initialState, action) {
             if (Object.keys(state.players).length >= state.MAX_PLAYERS || state.gameInProgress) {
                 return state;
             }
+            const playerControls = selectRandomControls(3);
             return {
                 ...state,
                 players: {
@@ -127,13 +130,19 @@ function gameReducer(state = initialState, action) {
                         lives: state.MAX_LIVES
                     }
                 },
+                playerControls: {
+                    ...state.playerControls,
+                    [action.payload.id]: playerControls
+                },
                 hostId: state.hostId || action.payload.id
             };
         case 'PLAYER_DISCONNECT':
             const { [action.payload]: removedPlayer, ...remainingPlayers } = state.players;
+            const { [action.payload]: removedControls, ...remainingControls } = state.playerControls;
             return {
                 ...state,
                 players: remainingPlayers,
+                playerControls: remainingControls,
                 hostId: state.hostId === action.payload ? (Object.keys(remainingPlayers)[0] || null) : state.hostId,
                 gameInProgress: Object.keys(remainingPlayers).length > 0 ? state.gameInProgress : false
             };
@@ -172,8 +181,9 @@ function gameReducer(state = initialState, action) {
         case 'SET_NEW_TASK':
             return {
                 ...state,
-                currentTask: action.payload,
-                taskTimer: 10
+                currentTask: action.payload.task,
+                taskTimer: 10,
+                lastSelectedControl: action.payload.selectedControl
             };
         case 'UPDATE_TIMERS':
             return {
@@ -199,7 +209,8 @@ function gameReducer(state = initialState, action) {
                 players: Object.fromEntries(
                     Object.entries(state.players).map(([id, player]) => [id, { ...player, ready: false }])
                 ),
-                currentControls: []
+                currentControls: [],
+                lastSelectedControl: null
             };
         default:
             return state;
@@ -223,10 +234,10 @@ function getTopScores() {
         .map((p, index) => ({ name: p.name, score: p.score, rank: index + 1 }));
 }
 
-function generateTasks(players) {
-    // This is a placeholder. In a real implementation, you would generate tasks based on the current game state.
+function generateTasks(selectedControl) {
+    // This is a placeholder. In a real implementation, you would generate tasks based on the selected control.
     return {
-        instruction: "Sample task instruction",
+        instruction: `Update the ${selectedControl.label}`,
         action: () => true, // This would be a function to check if the task is completed
         isValid: () => true // This would be a function to check if the task is still valid
     };
@@ -246,6 +257,7 @@ io.on('connection', (socket) => {
             socket.emit('host_status', true);
         }
         io.emit('players_update', Object.values(state.players));
+        socket.emit('assigned_controls', state.playerControls[socket.id]);
     });
 
     socket.on('start_game', () => {
@@ -313,9 +325,36 @@ function startGameLoop() {
 
 function setNewTask() {
     const state = store.getState();
-    const newTask = generateTasks(state.players);
-    store.dispatch({ type: 'SET_NEW_TASK', payload: newTask });
-    io.emit('new_task', newTask);
+    const playerIds = Object.keys(state.players);
+    
+    // Randomly select a player
+    const randomPlayerId = playerIds[Math.floor(Math.random() * playerIds.length)];
+    const playerControls = state.playerControls[randomPlayerId];
+
+    // Select a control that's different from the last one
+    let selectedControl;
+    do {
+        selectedControl = playerControls[Math.floor(Math.random() * playerControls.length)];
+    } while (selectedControl.id === state.lastSelectedControl && playerControls.length > 1);
+
+    const newTask = generateTasks(selectedControl);
+
+    // Select a different player to receive the instruction
+    const otherPlayerIds = playerIds.filter(id => id !== randomPlayerId);
+    const targetPlayerId = otherPlayerIds[Math.floor(Math.random() * otherPlayerIds.length)];
+
+    store.dispatch({ 
+        type: 'SET_NEW_TASK', 
+        payload: {
+            task: newTask,
+            selectedControl: selectedControl.id
+        }
+    });
+
+    io.to(targetPlayerId).emit('new_task', {
+        task: newTask,
+        controlToUpdate: selectedControl
+    });
 }
 
 function endRound() {
