@@ -14,19 +14,9 @@ const countdownProgressRightElement = document.getElementById('countdown-progres
 const playersListElement = document.getElementById('players');
 const tickerPanel = document.getElementById('ticker-panel');
 
-// Non-player editable setting for the number of lives
-const MAX_LIVES = 3;
-
-let lives = MAX_LIVES;
-let currentTask = null;
-let roundTimer = 120; // 2 minutes in seconds
-let taskStartTime = 0;
-let taskTimer = 10; // 10 seconds per task
-let roundInterval;
-let taskInterval;
-let currentControls = [];
 let playerId;
-let players = [];
+let gameState = {};
+let controlListeners = [];
 
 const allControls = [
     {
@@ -152,111 +142,44 @@ function setupControls() {
         return;
     }
     controlPanel.innerHTML = '';
-    currentControls = selectRandomControls(7);
+    const currentControls = selectRandomControls(7);
     currentControls.forEach(control => {
         const controlElement = createControl(control);
         controlPanel.appendChild(controlElement);
         if (control.type === 'slider') {
             const slider = controlElement.querySelector(`#${control.id}`);
             const level = controlElement.querySelector(`#${control.id}-level`);
-            slider.addEventListener('input', () => {
+            const sliderListener = () => {
                 updateSliderLevel(slider, level);
                 checkTask();
-            });
+            };
+            slider.addEventListener('input', sliderListener);
+            controlListeners.push({ element: slider, type: 'input', listener: sliderListener });
         } else if (control.type === 'button') {
             const button = controlElement.querySelector(`#${control.id}`);
-            button.addEventListener('click', () => {
+            const buttonListener = () => {
                 button.clicked = true;
                 checkTask();
                 setTimeout(() => { button.clicked = false; }, 1000);
-            });
+            };
+            button.addEventListener('click', buttonListener);
+            controlListeners.push({ element: button, type: 'click', listener: buttonListener });
         } else if (control.type === 'toggle') {
             const toggle = controlElement.querySelector(`#${control.id}`);
-            toggle.addEventListener('change', () => {
+            const toggleListener = () => {
                 updateToggleStatus(toggle);
                 checkTask();
-            });
+            };
+            toggle.addEventListener('change', toggleListener);
+            controlListeners.push({ element: toggle, type: 'change', listener: toggleListener });
         } else if (control.type === 'dropdown') {
             const dropdown = controlElement.querySelector(`#${control.id}`);
-            dropdown.addEventListener('change', checkTask);
+            const dropdownListener = checkTask;
+            dropdown.addEventListener('change', dropdownListener);
+            controlListeners.push({ element: dropdown, type: 'change', listener: dropdownListener });
         }
     });
     console.log("Controls set up complete.");
-}
-
-function generateTasks() {
-return currentControls.flatMap(control => {
-        switch (control.type) {
-            case 'slider':
-                const randomValue = Math.floor(Math.random() * 21) * 5; // Generate random multiple of 5 between 0 and 100
-                return [
-                    {
-                        instruction: `Set ${control.label} to ${randomValue}%!`,
-                        action: () => document.getElementById(control.id).value === randomValue.toString(),
-                        isValid: () => document.getElementById(control.id).value !== randomValue.toString()
-                    }
-                ];
-            case 'button':
-                return [
-                    {
-                        instruction: `${control.label}!`,
-                        action: () => document.getElementById(control.id).clicked,
-                        isValid: () => true
-                    }
-                ];
-            case 'toggle':
-                return [
-                    {
-                        instruction: `Enable ${control.label}!`,
-                        action: () => document.getElementById(control.id).checked,
-                        isValid: () => !document.getElementById(control.id).checked
-                    },
-                    {
-                        instruction: `Disable ${control.label}!`,
-                        action: () => !document.getElementById(control.id).checked,
-                        isValid: () => document.getElementById(control.id).checked
-                    }
-                ];
-            case 'dropdown':
-                return control.options.map(option => ({
-                    instruction: `Set ${control.label} to ${option}!`,
-                    action: () => document.getElementById(control.id).value === option,
-                    isValid: () => document.getElementById(control.id).value !== option
-                }));
-        }
-    });
-}
-
-function setNewTask() {
-    console.log("Setting new task...");
-    const tasks = generateTasks();
-    let validTasks = tasks.filter(task => task.isValid());
-    if (validTasks.length > 0) {
-        currentTask = validTasks[Math.floor(Math.random() * validTasks.length)];
-        updateInstruction(currentTask.instruction);
-        taskStartTime = Date.now();
-        taskTimer = 10; // Reset task timer to 10 seconds
-        updateCountdownTimer();
-    } else {
-        updateInstruction("Great job! Waiting for new tasks...");
-        setTimeout(setNewTask, 2000); // Try again in 2 seconds
-    }
-    console.log("New task set:", currentTask.instruction);
-}
-
-function updateInstruction(text) {
-    instructionElement.style.animation = 'none';
-    instructionElement.offsetHeight; // Trigger reflow
-    instructionElement.textContent = text;
-    instructionElement.style.animation = '';
-}
-
-function checkTask() {
-    if (currentTask && currentTask.action()) {
-        const timeTaken = (Date.now() - taskStartTime) / 1000; // Convert to seconds
-        socket.emit('task_completed', { playerId, timeTaken });
-        setNewTask();
-    }
 }
 
 function updateSliderLevel(slider, levelElement) {
@@ -265,26 +188,33 @@ function updateSliderLevel(slider, levelElement) {
     levelElement.textContent = roundedValue + '%';
 }
 
-function updateTimer() {
+function updateToggleStatus(toggle) {
+    const statusElement = toggle.closest('.control').querySelector('.toggle-status');
+    statusElement.textContent = toggle.checked ? 'On' : 'Off';
+}
+
+function checkTask() {
+    if (gameState.currentTask && gameState.currentTask.action()) {
+        const timeTaken = (Date.now() - gameState.taskStartTime) / 1000; // Convert to seconds
+        socket.emit('task_completed', { timeTaken });
+    }
+}
+
+function updateInstructionDisplay(text) {
+    instructionElement.style.animation = 'none';
+    instructionElement.offsetHeight; // Trigger reflow
+    instructionElement.textContent = text;
+    instructionElement.style.animation = '';
+}
+
+function updateTimerDisplay(roundTimer, taskTimer) {
     const minutes = Math.floor(roundTimer / 60);
     const seconds = roundTimer % 60;
     timerElement.textContent = `Time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-    roundTimer--;
-    if (roundTimer < 0) {
-        endRound();
-    }
+    updateCountdownTimer(taskTimer);
 }
 
-function updateTaskTimer() {
-    taskTimer--;
-    updateCountdownTimer();
-    if (taskTimer < 0) {
-        loseLife();
-        setNewTask();
-    }
-}
-
-function updateCountdownTimer() {
+function updateCountdownTimer(taskTimer) {
     const progress = (taskTimer / 10) * 100;
     countdownProgressLeftElement.style.height = `${progress}%`;
     countdownProgressRightElement.style.height = `${progress}%`;
@@ -293,19 +223,20 @@ function updateCountdownTimer() {
     countdownProgressRightElement.style.backgroundColor = color;
 }
 
-function loseLife() {
-    lives--;
-    updateLivesDisplay();
-    shakeScreen();
-    scrambleMatrixText();
-    pulseRed();
-    if (lives <= 0) {
-        endRound();
-    }
+function updateLivesDisplay(lives) {
+    livesElement.textContent = `Lives: ${lives}`;
 }
 
-function updateLivesDisplay() {
-    livesElement.textContent = `Lives: ${lives}`;
+function updatePlayersList(players) {
+    playersListElement.innerHTML = '';
+    Object.values(players).forEach(player => {
+        const li = document.createElement('li');
+        li.textContent = `${player.name}: ${player.score}`;
+        if (player.id === playerId) {
+            li.classList.add('font-bold');
+        }
+        playersListElement.appendChild(li);
+    });
 }
 
 function shakeScreen() {
@@ -362,45 +293,9 @@ function pulseRed() {
     }, 500);
 }
 
-function startRound() {
-    console.log("Starting new round...");
-    setupControls();
-    roundTimer = 120;
-    lives = MAX_LIVES;
-    updateLivesDisplay();
-    setNewTask();
-    roundInterval = setInterval(updateTimer, 1000);
-    taskInterval = setInterval(() => {
-        updateTaskTimer();
-        if (!currentTask || !currentTask.isValid()) {
-            setNewTask();
-        }
-    }, 1000);
-    socket.emit('player_ready');
-    console.log("Round started.");
-}
-
-function endRound() {
-    console.log("Ending round...");
-    clearInterval(roundInterval);
-    clearInterval(taskInterval);
-    socket.emit('round_end', { playerId });
-    
-    // Disable all controls
-    currentControls.forEach(control => {
-        const element = document.getElementById(control.id);
-        if (element) {
-            element.disabled = true;
-        }
-    });
-    
-    // Update instruction to inform the player
-    updateInstruction("Round ended. Waiting for final scores...");
-}
-
 function showGameOverScreen(data) {
     const { score, playerPosition, topScores } = data;
-    const visibleScores = 7; // Number of scores to display
+    const visibleScores = 7;
     const startIndex = Math.max(0, Math.min(playerPosition - Math.ceil(visibleScores / 2), topScores.length - visibleScores));
     const endIndex = Math.min(startIndex + visibleScores, topScores.length);
 
@@ -445,11 +340,6 @@ function showGameOverScreen(data) {
     });
 }
 
-function updateToggleStatus(toggle) {
-    const statusElement = toggle.closest('.control').querySelector('.toggle-status');
-    statusElement.textContent = toggle.checked ? 'On' : 'Off';
-}
-
 function createMatrixBackground() {
     const canvas = document.getElementById('matrix-bg');
     const ctx = canvas.getContext('2d');
@@ -458,7 +348,7 @@ function createMatrixBackground() {
     canvas.height = window.innerHeight;
 
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*()_+-=[]{}|;:,.<>?';
-    const columns = canvas.width / 15; // Reduced spacing between columns
+    const columns = canvas.width / 15;
     const drops = [];
 
     for (let i = 0; i < columns; i++) {
@@ -470,11 +360,11 @@ function createMatrixBackground() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         ctx.fillStyle = '#0F0';
-        ctx.font = '12px EpsonMxSeries, monospace'; // Reduced font size
+        ctx.font = '12px EpsonMxSeries, monospace';
 
         for (let i = 0; i < drops.length; i++) {
             const text = characters[Math.floor(Math.random() * characters.length)];
-            ctx.fillText(text, i * 15, drops[i] * 15); // Adjusted spacing
+            ctx.fillText(text, i * 15, drops[i] * 15);
 
             if (drops[i] * 15 > canvas.height && Math.random() > 0.975) {
                 drops[i] = 0;
@@ -487,24 +377,11 @@ function createMatrixBackground() {
     setInterval(draw, 33);
 }
 
-function updatePlayersList() {
-    playersListElement.innerHTML = '';
-    players.forEach(player => {
-        const li = document.createElement('li');
-        li.textContent = `${player.id}: ${player.score}`;
-        if (player.id === playerId) {
-            li.classList.add('font-bold');
-        }
-        playersListElement.appendChild(li);
-    });
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM content loaded. Initializing game...");
     try {
         createMatrixBackground();
         
-        // Add CSS for red pulse animation
         const style = document.createElement('style');
         style.textContent = `
             @keyframes pulse-red {
@@ -515,46 +392,55 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         document.head.appendChild(style);
 
-        // Socket.io event listeners
         socket.on('connect', () => {
             console.log('Connected to server');
+            playerId = socket.id;
         });
 
-        socket.on('init', (data) => {
-            playerId = data.playerId;
-            players = data.players;
-            updatePlayersList();
+        socket.on('players_update', (players) => {
+            updatePlayersList(players);
         });
 
-        socket.on('new_player', (player) => {
-            players.push(player);
-            updatePlayersList();
+        socket.on('game_starting', () => {
+            setupControls();
+            updateInstructionDisplay("Get ready! Game is starting...");
         });
 
-        socket.on('player_disconnected', (id) => {
-            players = players.filter(player => player.id !== id);
-            updatePlayersList();
-        });
-
-        socket.on('update_scores', (updatedPlayers) => {
-            players = updatedPlayers;
-            updatePlayersList();
-        });
-
-        socket.on('start_round', () => {
-            startRound();
-        });
-
-        socket.on('end_round', (data) => {
-            endRound();
-            showGameOverScreen(data);
+        socket.on('round_start', () => {
+            updateInstructionDisplay("Round started! Complete the tasks!");
         });
 
         socket.on('update_score', (score) => {
             scoreElement.textContent = score;
         });
 
-        startRound();
+        socket.on('update_game_state', (state) => {
+            gameState = state;
+            updateTimerDisplay(state.roundTimer, state.taskTimer);
+            updateLivesDisplay(state.players[playerId].lives);
+            updatePlayersList(state.players);
+            if (state.currentTask) {
+                updateInstructionDisplay(state.currentTask.instruction);
+            }
+        });
+
+        socket.on('new_task', (task) => {
+            gameState.currentTask = task;
+            gameState.taskStartTime = Date.now();
+            updateInstructionDisplay(task.instruction);
+        });
+
+        socket.on('end_round', (data) => {
+            showGameOverScreen(data);
+        });
+
+        socket.on('player_disconnected', (id) => {
+            if (gameState.players) {
+                delete gameState.players[id];
+                updatePlayersList(gameState.players);
+            }
+        });
+
     } catch (error) {
         console.error("Error initializing game:", error);
     }
