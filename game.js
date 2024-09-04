@@ -17,7 +17,6 @@ const tickerPanel = document.getElementById('ticker-panel');
 // Non-player editable setting for the number of lives
 const MAX_LIVES = 3;
 
-let score = 0;
 let lives = MAX_LIVES;
 let currentTask = null;
 let roundTimer = 120; // 2 minutes in seconds
@@ -25,7 +24,6 @@ let taskStartTime = 0;
 let taskTimer = 10; // 10 seconds per task
 let roundInterval;
 let taskInterval;
-let topScores = [];
 let currentControls = [];
 let playerId;
 let players = [];
@@ -229,12 +227,6 @@ return currentControls.flatMap(control => {
     });
 }
 
-function updateScore(points) {
-    score += points;
-    scoreElement.textContent = score;
-    socket.emit('update_score', { playerId, score });
-}
-
 function setNewTask() {
     console.log("Setting new task...");
     const tasks = generateTasks();
@@ -262,11 +254,7 @@ function updateInstruction(text) {
 function checkTask() {
     if (currentTask && currentTask.action()) {
         const timeTaken = (Date.now() - taskStartTime) / 1000; // Convert to seconds
-        const maxPoints = 100;
-        const minPoints = 10;
-        const maxTime = 10; // Maximum time to complete a task for minimum points
-        const points = Math.max(minPoints, Math.floor(maxPoints - (timeTaken / maxTime) * (maxPoints - minPoints)));
-        updateScore(points);
+        socket.emit('task_completed', { playerId, timeTaken });
         setNewTask();
     }
 }
@@ -378,9 +366,7 @@ function startRound() {
     console.log("Starting new round...");
     setupControls();
     roundTimer = 120;
-    score = 0;
     lives = MAX_LIVES;
-    scoreElement.textContent = '0';
     updateLivesDisplay();
     setNewTask();
     roundInterval = setInterval(updateTimer, 1000);
@@ -398,24 +384,22 @@ function endRound() {
     console.log("Ending round...");
     clearInterval(roundInterval);
     clearInterval(taskInterval);
-    socket.emit('round_end', { playerId, score });
+    socket.emit('round_end', { playerId });
+    
+    // Disable all controls
+    currentControls.forEach(control => {
+        const element = document.getElementById(control.id);
+        if (element) {
+            element.disabled = true;
+        }
+    });
+    
+    // Update instruction to inform the player
+    updateInstruction("Round ended. Waiting for final scores...");
 }
 
-function checkHighScore(score) {
-    const newScore = { name: "Player", score: score };
-    topScores.push(newScore);
-    topScores.sort((a, b) => b.score - a.score);
-    const playerPosition = topScores.findIndex(s => s === newScore) + 1;
-    
-    if (topScores.length > 100) {
-        topScores.pop();
-    }
-    
-    saveTopScores();
-    return playerPosition;
-}
-
-function showGameOverScreen(playerPosition) {
+function showGameOverScreen(data) {
+    const { score, playerPosition, topScores } = data;
     const visibleScores = 7; // Number of scores to display
     const startIndex = Math.max(0, Math.min(playerPosition - Math.ceil(visibleScores / 2), topScores.length - visibleScores));
     const endIndex = Math.min(startIndex + visibleScores, topScores.length);
@@ -437,7 +421,7 @@ function showGameOverScreen(playerPosition) {
                     <tbody id="leaderboard-body"></tbody>
                 </table>
             </div>
-            <button id="end-button" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">End</button>
+            <button id="end-button" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Return to Main Menu</button>
         </div>
     `;
 
@@ -459,32 +443,6 @@ function showGameOverScreen(playerPosition) {
     document.getElementById('end-button').addEventListener('click', () => {
         window.location.href = 'index.html';
     });
-}
-
-function updateScoreboard() {
-    if (!topScoresElement) {
-        console.error("Top scores element not found!");
-        return;
-    }
-    topScoresElement.innerHTML = '';
-    topScores.slice(0, 5).forEach((score, index) => {
-        const li = document.createElement('li');
-        li.textContent = `${score.name}: ${score.score}`;
-        li.className = 'mb-2';
-        topScoresElement.appendChild(li);
-    });
-}
-
-function saveTopScores() {
-    localStorage.setItem('cloudTeamTopScores', JSON.stringify(topScores));
-}
-
-function loadTopScores() {
-    const savedScores = localStorage.getItem('cloudTeamTopScores');
-    if (savedScores) {
-        topScores = JSON.parse(savedScores);
-        updateScoreboard();
-    }
 }
 
 function updateToggleStatus(toggle) {
@@ -544,7 +502,6 @@ function updatePlayersList() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM content loaded. Initializing game...");
     try {
-        loadTopScores();
         createMatrixBackground();
         
         // Add CSS for red pulse animation
@@ -588,10 +545,15 @@ document.addEventListener('DOMContentLoaded', () => {
             startRound();
         });
 
-        socket.on('end_round', (results) => {
+        socket.on('end_round', (data) => {
             endRound();
-            showGameOverScreen(results);
+            showGameOverScreen(data);
         });
+
+        socket.on('update_score', (score) => {
+            scoreElement.textContent = score;
+        });
+
         startRound();
     } catch (error) {
         console.error("Error initializing game:", error);

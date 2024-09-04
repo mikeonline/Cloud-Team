@@ -16,6 +16,20 @@ const MAX_PLAYERS = 4;
 let gameInProgress = false;
 let hostId = null;
 
+function calculateScore(timeTaken) {
+  const maxPoints = 100;
+  const minPoints = 10;
+  const maxTime = 10; // Maximum time to complete a task for minimum points
+  return Math.max(minPoints, Math.floor(maxPoints - (timeTaken / maxTime) * (maxPoints - minPoints)));
+}
+
+function getTopScores() {
+  return Array.from(players.values())
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10)
+    .map((p, index) => ({ name: p.name, score: p.score, rank: index + 1 }));
+}
+
 io.on('connection', (socket) => {
   console.log('New player connected:', socket.id);
 
@@ -57,10 +71,12 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('update_score', (data) => {
+  socket.on('task_completed', (data) => {
     const player = players.get(data.playerId);
     if (player) {
-      player.score = data.score;
+      const points = calculateScore(data.timeTaken);
+      player.score += points;
+      socket.emit('update_score', player.score);
       io.emit('update_scores', Array.from(players.values()));
     }
   });
@@ -68,16 +84,19 @@ io.on('connection', (socket) => {
   socket.on('round_end', (data) => {
     const player = players.get(data.playerId);
     if (player) {
-      player.score = data.score;
       player.ready = false;
     }
 
     if (Array.from(players.values()).every(p => !p.ready)) {
-      const results = Array.from(players.values())
-        .sort((a, b) => b.score - a.score)
-        .map((p, index) => ({ ...p, position: index + 1 }));
+      const topScores = getTopScores();
+      const playerPosition = topScores.findIndex(p => p.id === data.playerId) + 1;
       
-      io.emit('end_round', results);
+      socket.emit('end_round', {
+        score: player.score,
+        playerPosition: playerPosition,
+        topScores: topScores
+      });
+      
       gameInProgress = false;
     }
   });
