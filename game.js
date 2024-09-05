@@ -2,6 +2,16 @@ console.log("Game.js is loading...");
 
 const socket = io();
 
+// Add debug flag
+const DEBUG = true;
+
+// Add debug logging function
+function debugLog(message) {
+    if (DEBUG) {
+        console.log(`[DEBUG] ${message}`);
+    }
+}
+
 const controlPanel = document.getElementById('control-panel');
 const instructionElement = document.getElementById('instruction');
 const scoreElement = document.getElementById('score');
@@ -19,7 +29,7 @@ let gameState = {};
 let controlListeners = [];
 
 function createControl(control) {
-    console.log(`Creating control: ${control.id}`);
+    debugLog(`Creating control: ${control.id}`);
     const controlDiv = document.createElement('div');
     controlDiv.className = 'control';
     controlDiv.innerHTML = `<label for="${control.id}" class="block mb-2">${control.label}:</label>`;
@@ -52,12 +62,13 @@ function createControl(control) {
 }
 
 function setupControls(controls) {
-    console.log("Setting up controls...");
+    debugLog("Setting up controls...");
     if (!controlPanel) {
         console.error("Control panel element not found!");
         return;
     }
     controlPanel.innerHTML = '';
+    controlPanel.style.display = 'grid'; // Ensure the control panel is visible
     controls.forEach(control => {
         const controlElement = createControl(control);
         controlPanel.appendChild(controlElement);
@@ -94,23 +105,26 @@ function setupControls(controls) {
             controlListeners.push({ element: dropdown, type: 'change', listener: dropdownListener });
         }
     });
-    console.log("Controls set up complete.");
+    debugLog("Controls set up complete.");
 }
 
 function updateSliderLevel(slider, levelElement) {
     const roundedValue = Math.round(slider.value / 5) * 5;
     slider.value = roundedValue;
     levelElement.textContent = roundedValue + '%';
+    debugLog(`Slider updated: ${slider.id} = ${roundedValue}%`);
 }
 
 function updateToggleStatus(toggle) {
     const statusElement = toggle.closest('.control').querySelector('.toggle-status');
     statusElement.textContent = toggle.checked ? 'On' : 'Off';
+    debugLog(`Toggle updated: ${toggle.id} = ${toggle.checked ? 'On' : 'Off'}`);
 }
 
 function checkTask() {
     if (gameState.currentTask && gameState.currentTask.action()) {
         const timeTaken = (Date.now() - gameState.taskStartTime) / 1000; // Convert to seconds
+        debugLog(`Task completed. Time taken: ${timeTaken} seconds`);
         socket.emit('task_completed', { timeTaken });
     }
 }
@@ -120,6 +134,7 @@ function updateInstructionDisplay(text) {
     instructionElement.offsetHeight; // Trigger reflow
     instructionElement.textContent = text;
     instructionElement.style.animation = '';
+    debugLog(`Instruction updated: ${text}`);
 }
 
 function updateTimerDisplay(roundTimer, taskTimer) {
@@ -127,6 +142,7 @@ function updateTimerDisplay(roundTimer, taskTimer) {
     const seconds = roundTimer % 60;
     timerElement.textContent = `Time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
     updateCountdownTimer(taskTimer);
+    debugLog(`Timer updated: ${minutes}:${seconds.toString().padStart(2, '0')}`);
 }
 
 function updateCountdownTimer(taskTimer) {
@@ -136,10 +152,12 @@ function updateCountdownTimer(taskTimer) {
     const color = progress <= 30 ? '#ef4444' : '#48bb78';
     countdownProgressLeftElement.style.backgroundColor = color;
     countdownProgressRightElement.style.backgroundColor = color;
+    debugLog(`Countdown timer updated: ${progress}%`);
 }
 
 function updateLivesDisplay(lives) {
     livesElement.textContent = `Lives: ${lives}`;
+    debugLog(`Lives updated: ${lives}`);
 }
 
 function updatePlayersList(players) {
@@ -152,6 +170,7 @@ function updatePlayersList(players) {
         }
         playersListElement.appendChild(li);
     });
+    debugLog(`Players list updated: ${Object.keys(players).length} players`);
 }
 
 function shakeScreen() {
@@ -159,6 +178,7 @@ function shakeScreen() {
     setTimeout(() => {
         gameContainer.classList.remove('shake');
     }, 500);
+    debugLog("Screen shake effect triggered");
 }
 
 function scrambleMatrixText() {
@@ -189,6 +209,7 @@ function scrambleMatrixText() {
             clearInterval(scrambleInterval);
         }
     }, 50);
+    debugLog("Matrix text scramble effect triggered");
 }
 
 function pulseRed() {
@@ -206,6 +227,7 @@ function pulseRed() {
     setTimeout(() => {
         document.body.removeChild(overlay);
     }, 500);
+    debugLog("Red pulse effect triggered");
 }
 
 function showGameOverScreen(data) {
@@ -253,6 +275,7 @@ function showGameOverScreen(data) {
     document.getElementById('end-button').addEventListener('click', () => {
         window.location.href = 'index.html';
     });
+    debugLog("Game over screen displayed");
 }
 
 function createMatrixBackground() {
@@ -290,10 +313,11 @@ function createMatrixBackground() {
     }
 
     setInterval(draw, 33);
+    debugLog("Matrix background created");
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM content loaded. Initializing game...");
+    debugLog("DOM content loaded. Initializing game...");
     try {
         createMatrixBackground();
         
@@ -308,28 +332,33 @@ document.addEventListener('DOMContentLoaded', () => {
         document.head.appendChild(style);
 
         socket.on('connect', () => {
-            console.log('Connected to server');
+            debugLog('Connected to server');
             playerId = socket.id;
         });
 
         socket.on('players_update', (players) => {
+            debugLog(`Received players update: ${JSON.stringify(players)}`);
             updatePlayersList(players);
         });
 
         socket.on('game_starting', (controls) => {
+            debugLog(`Game starting with controls: ${JSON.stringify(controls)}`);
             setupControls(controls);
             updateInstructionDisplay("Get ready! Game is starting...");
         });
 
         socket.on('round_start', () => {
+            debugLog("Round started");
             updateInstructionDisplay("Round started! Complete the tasks!");
         });
 
         socket.on('update_score', (score) => {
+            debugLog(`Score updated: ${score}`);
             scoreElement.textContent = score;
         });
 
         socket.on('update_game_state', (state) => {
+            debugLog(`Game state updated: ${JSON.stringify(state)}`);
             gameState = state;
             updateTimerDisplay(state.roundTimer, state.taskTimer);
             updateLivesDisplay(state.players[playerId].lives);
@@ -340,16 +369,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         socket.on('new_task', (task) => {
+            debugLog(`New task received: ${JSON.stringify(task)}`);
             gameState.currentTask = task;
             gameState.taskStartTime = Date.now();
             updateInstructionDisplay(task.instruction);
         });
 
         socket.on('end_round', (data) => {
+            debugLog(`Round ended: ${JSON.stringify(data)}`);
             showGameOverScreen(data);
         });
 
         socket.on('player_disconnected', (id) => {
+            debugLog(`Player disconnected: ${id}`);
             if (gameState.players) {
                 delete gameState.players[id];
                 updatePlayersList(gameState.players);
@@ -361,4 +393,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-console.log("Game.js loaded successfully.");
+debugLog("Game.js loaded successfully.");
