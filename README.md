@@ -25,6 +25,8 @@ cloud-team-angular/
 ├── angular.json
 ├── package.json
 ├── tsconfig.json
+├── tailwind.config.js
+├── postcss.config.js
 └── README.md
 ```
 
@@ -38,7 +40,7 @@ Cloud Team is a web-based game that simulates managing cloud infrastructure. Pla
 - Dynamic game interface with real-time updates
 - Scoring system and lives counter
 - Timed gameplay with visual countdown
-- Responsive design using Angular and SCSS
+- Responsive design using Angular, SCSS, and Tailwind CSS
 - Modular architecture with separate components for different game elements
 
 ## Future Plans
@@ -59,16 +61,20 @@ Cloud Team is a web-based game that simulates managing cloud infrastructure. Pla
 
 - [Angular](https://angular.io/) (version specified in package.json)
 - [RxJS](https://rxjs.dev/) for reactive programming
+- [Tailwind CSS](https://tailwindcss.com/) for utility-first CSS
 - Other dependencies as listed in package.json
 
 ## Key Files and Components
 
 - `src/app/app.component.ts`: The root component of the application
 - `src/app/game/game.component.ts`: Contains the main game logic
-- `src/app/services/`: Directory containing various services (timer, player, etc.)
+- `src/app/services/`: Directory containing various services (timer, player, game-state, etc.)
 - `src/app/timer/timer.component.ts`: Manages the game timer functionality
 - `src/app/control-panel/control-panel.component.ts`: Handles game controls
 - `src/app/score-panel/score-panel.component.ts`: Manages score display and updates
+- `src/app/message-panel/message-panel.component.ts`: Handles in-game messaging
+- `src/app/observation-lounge/observation-lounge.component.ts`: Manages the observation area
+- `src/app/player-registration/player-registration.component.ts`: Handles player registration
 
 ## Contributing
 
@@ -81,7 +87,17 @@ Contributions to Cloud Team are welcome! Please feel free to submit a Pull Reque
 - Implemented Angular's powerful features for state management and reactivity
 - Updated the build process to use Angular CLI
 - Refactored game logic to work within Angular's component lifecycle
+- Integrated Tailwind CSS for improved styling capabilities
+- Added new services: game-state, message, observation
+- Preserved old Angular setup in cloud-team-angular_old/ for reference
 
 ## Git Repository
 
 The project is now hosted on GitHub at https://github.com/mikeonline/Cloud-Team.git. The latest changes have been pushed to the 'newTake' branch.
+
+## Development Notes
+
+- The project uses a modular structure with separate components for different game elements, promoting code reusability and maintainability.
+- Services are used for shared functionality and state management across components.
+- Tailwind CSS is integrated for rapid UI development and consistent styling.
+- The old Angular setup is preserved in the cloud-team-angular_old/ directory for reference during the migration process.
