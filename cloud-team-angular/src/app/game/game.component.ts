@@ -1,10 +1,23 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { GameStateService, GameState } from '../services/game-state.service';
 import { TimerService } from '../services/timer.service';
 import { Subscription } from 'rxjs';
+import { TimerComponent } from '../timer/timer.component';
+import { ScorePanelComponent } from '../score-panel/score-panel.component';
+import { ControlPanelComponent } from '../control-panel/control-panel.component';
+import { MessagePanelComponent } from '../message-panel/message-panel.component';
 
 @Component({
   selector: 'app-game',
+  standalone: true,
+  imports: [
+    CommonModule,
+    TimerComponent,
+    ScorePanelComponent,
+    ControlPanelComponent,
+    MessagePanelComponent
+  ],
   template: `
     <div class="game-container p-4">
       <h1 class="text-2xl font-bold mb-4">Cloud Team Game</h1>
@@ -49,7 +62,10 @@ export class GameComponent implements OnInit, OnDestroy {
   constructor(
     private gameStateService: GameStateService,
     private timerService: TimerService
-  ) {}
+  ) {
+    this.gameState = { isGameActive: false, timeRemaining: 0, score: 0 };
+    this.gameStateSubscription = new Subscription();
+  }
 
   ngOnInit() {
     this.gameStateSubscription = this.gameStateService.gameState$.subscribe(

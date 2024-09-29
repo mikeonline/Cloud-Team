@@ -1,9 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { TimerService } from '../services/timer.service';
 
 @Component({
   selector: 'app-timer',
+  standalone: true,
+  imports: [CommonModule, DecimalPipe],
   template: `
     <div class="timer-container">
       <span class="timer-label">Time Remaining:</span>

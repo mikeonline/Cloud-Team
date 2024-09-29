@@ -1,10 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { ObservationService } from '../services/observation.service';
 import { GameStateService } from '../services/game-state.service';
 
 @Component({
   selector: 'app-observation-lounge',
+  standalone: true,
+  imports: [CommonModule],
   template: `
     <div class="observation-lounge bg-gray-100 p-4 rounded mt-4">
       <h2 class="text-xl font-bold mb-2">Observation Lounge</h2>
@@ -46,7 +49,10 @@ export class ObservationLoungeComponent implements OnInit, OnDestroy {
   constructor(
     private observationService: ObservationService,
     private gameStateService: GameStateService
-  ) {}
+  ) {
+    this.gameStateSubscription = new Subscription();
+    this.observerCountSubscription = new Subscription();
+  }
 
   ngOnInit() {
     this.gameStateSubscription = this.gameStateService.gameState$.subscribe(

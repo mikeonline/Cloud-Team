@@ -1,16 +1,22 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { GameStateService } from '../services/game-state.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-control-panel',
+  standalone: true,
+  imports: [CommonModule],
   template: `
     <div class="control-panel">
-      <button (click)="startGame()" [disabled]="gameState.isGameActive" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">
-        Start Game
-      </button>
-      <button (click)="endGame()" [disabled]="!gameState.isGameActive" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-        End Game
-      </button>
+      <ng-container *ngIf="gameState$ | async as gameState">
+        <button (click)="startGame()" [disabled]="gameState.isGameActive" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">
+          Start Game
+        </button>
+        <button (click)="endGame()" [disabled]="!gameState.isGameActive" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+          End Game
+        </button>
+      </ng-container>
     </div>
   `,
   styles: [`
@@ -20,10 +26,10 @@ import { GameStateService } from '../services/game-state.service';
   `]
 })
 export class ControlPanelComponent {
-  constructor(private gameStateService: GameStateService) {}
+  gameState$: Observable<any>;
 
-  get gameState() {
-    return this.gameStateService.gameState$.value;
+  constructor(private gameStateService: GameStateService) {
+    this.gameState$ = this.gameStateService.gameState$;
   }
 
   startGame() {

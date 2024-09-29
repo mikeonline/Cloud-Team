@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { PlayerService, Player } from '../services/player.service';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-player-registration',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   template: `
     <div class="registration-container p-4 max-w-md mx-auto">
       <h2 class="text-2xl font-bold mb-4">Player Registration</h2>
@@ -36,8 +39,7 @@ export class PlayerRegistrationComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private playerService: PlayerService,
-    private router: Router
+    private playerService: PlayerService
   ) {
     this.registrationForm = this.fb.group({
       name: ['', [Validators.required]],
@@ -57,7 +59,7 @@ export class PlayerRegistrationComponent implements OnInit {
     if (this.registrationForm.valid) {
       const player: Player = this.registrationForm.value;
       this.playerService.registerPlayer(player);
-      this.router.navigate(['/game']);
+      // Note: Navigation should be handled in the parent component or through a service
     }
   }
 }
