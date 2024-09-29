@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+@font-face {
+    font-family: 'EpsonMxSeries';
+    src: url('assets/fonts/EpsonMxSeriesDmp-ZVRG8.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Rastamano';
+    src: url('assets/fonts/Rastamanoblique-xner.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'JetBrains Mono Regular';
+    src: url('assets/fonts/JetBrainsMonoNL-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'JetBrains Mono Extra Bold';
+    src: url('assets/fonts/JetBrainsMono-ExtraBold.ttf') format('truetype');
+}
+
+body {
+    font-family: 'JetBrains Mono Regular', monospace;
+}
+
+h1, h2, h3, h4, h5, h6, #top-scores {
+    font-family: 'JetBrains Mono Extra Bold', cursive;
+}
+
+/* Add any additional custom styles here */
