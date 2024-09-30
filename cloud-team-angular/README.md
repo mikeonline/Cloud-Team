@@ -2,6 +2,14 @@
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.4.
 
+## Recent Updates
+
+- All components have been converted to standalone components.
+- Fixed issues with uninitialized properties in various components.
+- Corrected the usage of the 'number' pipe in the TimerComponent.
+- Updated the GameComponent to properly import and use the standalone child components.
+- Resolved `ng build` errors and improved overall application stability.
+
 ## Development server
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
